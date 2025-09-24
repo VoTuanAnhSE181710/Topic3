@@ -1,4 +1,4 @@
-import { Button, Form, Input, Modal, Table, message } from 'antd'
+import { Button, Form, Input, Modal, Popconfirm, Table } from 'antd'
 import { useForm } from 'antd/es/form/Form';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
@@ -8,7 +8,7 @@ const ManageCategory = () => {
 
   const [categories, setCategories] = useState();
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [form] = useForm();
 
   const columns = [
@@ -21,6 +21,43 @@ const ManageCategory = () => {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
+    },
+    {
+      title: 'Actions',
+      dataIndex: 'id',
+      key: 'id',
+      render: (id, record) => {
+        // record: entire row data
+        return (
+          <>
+            <Button
+              type='primary' onClick={() => {
+                //1. open modal
+                setOpen(true);
+                //2. fill old data to form
+                form.setFieldsValue(record);
+              }}
+            >
+              Edit
+            </Button>
+            <Popconfirm
+              title="Delete category"
+              onConfirm={async () => {
+                // => cho phép delete
+                await axios.delete(
+                  `https://68d390e7214be68f8c6646ef.mockapi.io/category/${id}`
+                );
+                fetchCategories();
+                toast.success("Successfully deleted category!");
+              }}
+            >
+              <Button type="primary" danger>
+                Delete
+              </Button>
+            </Popconfirm>
+          </>
+        );
+      },
     },
   ];
 
@@ -41,32 +78,29 @@ const ManageCategory = () => {
   }, []);
 
   const handleSubmit = async (values) => {
-    try {
-      setLoading(true);
+    const { id } = values;
+    let response;
 
-      // Call API to create new category
-      const response = await axios.post(
-        'https://68d390e7214be68f8c6646ef.mockapi.io/category',
+    if (id) {
+      // => update
+      response = await axios.put(
+        `https://68d390e7214be68f8c6646ef.mockapi.io/category/${id}`,
         values
       );
-
-      console.log('Category created:', response.data);
-      message.success('Category created successfully!');
-
-      // Refresh the categories list
-      await fetchCategories();
-
-      // Close modal and reset form
-      setOpen(false);
-      form.resetFields();
-      toast.success('Category created successfully!');
-
-    } catch (error) {
-      console.error('Error creating category:', error);
-      message.error('Failed to create category. Please try again.');
-    } finally {
-      setLoading(false);
+      toast.success("Successfully updated category!");
+    } else {
+      // => create new
+      response = await axios.post(
+        "https://68d390e7214be68f8c6646ef.mockapi.io/category",
+        values
+      );
+      toast.success("Successfully created new category!");
     }
+
+    console.log(response.data);
+    setOpen(false);
+    fetchCategories();
+    form.resetFields();
   };
 
   const handleCancel = () => {
@@ -89,6 +123,9 @@ const ManageCategory = () => {
           layout="vertical"
           onFinish={handleSubmit}
         >
+          <Form.Item label='ID' name='id' hidden>
+            <Input />
+          </Form.Item>
           <Form.Item
             label="Name"
             name="name"
