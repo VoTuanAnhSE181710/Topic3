@@ -1,12 +1,28 @@
+import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import Dashboard from "./components/dashboard"
+import ManageStation from "./pages/station"
+import ManageCategory from "./pages/category"
+
 function App() {
-    const age = 25;
-    const name = "John Doe";
-  return (
-    <div>
-      <h1>{name}</h1>
-      <h1>Age: {age}</h1>
-    </div>
-  )
+
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <Dashboard />,
+      children: [
+        {
+          path: "station",
+          element: <ManageStation />
+        },
+        {
+          path: "category",
+          element: <ManageCategory />
+        },
+      ],
+    },
+  ]);
+
+  return <RouterProvider router={router} />
 }
 
 export default App
