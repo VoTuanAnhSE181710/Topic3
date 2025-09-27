@@ -1,8 +1,8 @@
 import { Button, Form, Input, Card, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../../config/axios';
 
 const { Title, Text } = Typography;
 
@@ -16,16 +16,7 @@ const Register = () => {
             setLoading(true);
 
             // Call API to register user
-            const response = await axios.post(
-                'https://68d390e7214be68f8c6646ef.mockapi.io/auth/register',
-                {
-                    fullName: values.fullName,
-                    email: values.email,
-                    phone: values.phone,
-                    password: values.password
-                }
-            );
-
+            const response = await api.post('/register', values)
             console.log('Registration successful:', response.data);
             message.success('Registration successful! Please login.');
 

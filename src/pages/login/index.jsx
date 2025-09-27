@@ -1,8 +1,10 @@
 import { Button, Form, Input, Card, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import api from '../../config/axios';
+import { login } from '../../redux/accountSlice';
 
 const { Title, Text } = Typography;
 
@@ -10,26 +12,27 @@ const Login = () => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    /*
+     1. cập nhật => dispatch action => reducer => store
+     2. lấy dữ liệu từ store => useSelector
+
+    */
 
     const handleSubmit = async (values) => {
         try {
             setLoading(true);
 
             // Call API to authenticate user
-            const response = await axios.post(
-                'https://68d390e7214be68f8c6646ef.mockapi.io/auth/login',
-                {
-                    email: values.email,
-                    password: values.password
-                }
-            );
-
+            const response = await api.post('/login', values);
             console.log('Login successful:', response.data);
             message.success('Login successful!');
 
             // Store user data or token (if needed)
-            localStorage.setItem('user', JSON.stringify(response.data));
-
+            const { token } = response.data;
+            localStorage.setItem('token', token);
+            dispatch(login(response.data)); // Dispatch user data to Redux store
             // Navigate to dashboard
             navigate('/');
 

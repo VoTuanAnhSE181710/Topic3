@@ -1,15 +1,31 @@
-import { Button, Form, Input, Modal, Popconfirm, Table } from 'antd'
+import { Button, Form, Input, Modal, Popconfirm, Table, message } from 'antd'
 import { useForm } from 'antd/es/form/Form';
-import axios from 'axios';
 import React, { useEffect, useState } from 'react'
-import { toast } from 'react-toastify';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  clearError
+} from '../../redux/slices/categorySlice';
 
 const ManageCategory = () => {
-
-  const [categories, setCategories] = useState();
+  const dispatch = useDispatch();
+  const { categories, loading, error } = useSelector(state => state.categories);
   const [open, setOpen] = useState(false);
-  const [loading] = useState(false);
   const [form] = useForm();
+
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
 
   const columns = [
     {
@@ -43,12 +59,8 @@ const ManageCategory = () => {
             <Popconfirm
               title="Delete category"
               onConfirm={async () => {
-                // => cho phép delete
-                await axios.delete(
-                  `https://68d390e7214be68f8c6646ef.mockapi.io/category/${id}`
-                );
-                fetchCategories();
-                toast.success("Successfully deleted category!");
+                await dispatch(deleteCategory(id));
+                message.success("Successfully deleted category!");
               }}
             >
               <Button type="primary" danger>
@@ -61,46 +73,25 @@ const ManageCategory = () => {
     },
   ];
 
-  const fetchCategories = async () => {
-    //call api to get categories
-    console.log('Fetching data from API...');
-    //wait for BE to respond
-    const response = await axios.get(
-      'https://68d390e7214be68f8c6646ef.mockapi.io/category'
-    );
-    console.log(response.data);
-    setCategories(response.data);
-  };
-
-  useEffect(() => {
-    // what it does when the page is loaded
-    fetchCategories();
-  }, []);
-
   const handleSubmit = async (values) => {
     const { id } = values;
-    let response;
 
-    if (id) {
-      // => update
-      response = await axios.put(
-        `https://68d390e7214be68f8c6646ef.mockapi.io/category/${id}`,
-        values
-      );
-      toast.success("Successfully updated category!");
-    } else {
-      // => create new
-      response = await axios.post(
-        "https://68d390e7214be68f8c6646ef.mockapi.io/category",
-        values
-      );
-      toast.success("Successfully created new category!");
+    try {
+      if (id) {
+        // Update existing category
+        await dispatch(updateCategory({ id, ...values }));
+        message.success("Successfully updated category!");
+      } else {
+        // Create new category
+        await dispatch(createCategory(values));
+        message.success("Successfully created new category!");
+      }
+
+      setOpen(false);
+      form.resetFields();
+    } catch {
+      message.error("Operation failed. Please try again.");
     }
-
-    console.log(response.data);
-    setOpen(false);
-    fetchCategories();
-    form.resetFields();
   };
 
   const handleCancel = () => {

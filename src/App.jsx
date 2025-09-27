@@ -4,6 +4,7 @@ import ManageStation from "./pages/station"
 import ManageCategory from "./pages/category"
 import Login from "./pages/login"
 import Register from "./pages/register"
+import Home from "./pages/home"
 import { ToastContainer } from "react-toastify";
 
 function App() {
@@ -21,6 +22,14 @@ function App() {
       path: "/",
       element: <Dashboard />,
       children: [
+        {
+          path: "",
+          element: <Home />
+        },
+        {
+          path: "home",
+          element: <Home />
+        },
         {
           path: "station",
           element: <ManageStation />
